@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"strconv"
+	"time"
 
-	"github.com/julienschmidt/httprouter"
+	"rehmanm.go-todo/internal/data"
 )
 
 func (app *application) createTodoHandler(w http.ResponseWriter, r *http.Request) {
@@ -25,13 +25,24 @@ func (app *application) updateTodoHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) getTodoHandler(w http.ResponseWriter, r *http.Request) {
-	params := httprouter.ParamsFromContext(r.Context())
 
-	id, err := strconv.ParseInt(params.ByName("id"), 10, 64)
+	id, err := app.readIDParam(r)
 	if err != nil || id < 1 {
-		http.NotFound(w, r)
+		app.notFoundResponse(w, r)
 		return
 	}
 
-	fmt.Fprintf(w, "show the details of the todo %d\n", id)
+	todo := data.Todo{
+		ID:        id,
+		CreatedAt: time.Now(),
+		Title:     "First Todo",
+		Completed: false,
+		UpdatedAt: time.Now(),
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"todo": todo}, nil)
+
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }
