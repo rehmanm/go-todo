@@ -6,9 +6,33 @@ import (
 	"time"
 
 	"rehmanm.go-todo/internal/data"
+	"rehmanm.go-todo/internal/validator"
 )
 
 func (app *application) createTodoHandler(w http.ResponseWriter, r *http.Request) {
+
+	var input struct {
+		Title string `json:"title"`
+	}
+
+	err := app.readJSON(w, r, &input)
+
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	todo := &data.Todo{
+		Title: input.Title,
+	}
+
+	v := validator.New()
+
+	if data.ValidateTodo(v, todo); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
 	fmt.Fprintln(w, "Create todo")
 }
 
