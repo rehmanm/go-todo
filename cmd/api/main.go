@@ -11,6 +11,7 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	"rehmanm.go-todo/internal/data"
 )
 
 const version = "1.0.0"
@@ -29,10 +30,10 @@ type config struct {
 type application struct {
 	config config
 	logger *slog.Logger
+	models data.Models
 }
 
 func main() {
-	fmt.Println("go-todo api")
 
 	var cfg config
 
@@ -56,9 +57,12 @@ func main() {
 
 	defer db.Close()
 
+	logger.Info("database connection pool established")
+
 	app := &application{
 		config: cfg,
 		logger: logger,
+		models: data.NewModels(db),
 	}
 
 	srv := &http.Server{

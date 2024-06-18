@@ -33,7 +33,18 @@ func (app *application) createTodoHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	fmt.Fprintln(w, "Create todo")
+	err = app.models.Todos.Insert(todo)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+	headers := make(http.Header)
+	headers.Set("Location", fmt.Sprintf("/v1/todos/%d", todo.ID))
+
+	err = app.writeJSON(w, http.StatusCreated, envelope{"todo": todo}, headers)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }
 
 func (app *application) deleteTodoHandler(w http.ResponseWriter, r *http.Request) {

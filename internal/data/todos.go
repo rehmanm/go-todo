@@ -1,6 +1,7 @@
 package data
 
 import (
+	"database/sql"
 	"time"
 
 	"rehmanm.go-todo/internal/validator"
@@ -20,3 +21,30 @@ func ValidateTodo(v *validator.Validator, t *Todo) {
 }
 
 //string directive can be used if user wants to convert numerical values to string
+
+type TodoModel struct {
+	DB *sql.DB
+}
+
+func (m TodoModel) Insert(todo *Todo) error {
+
+	query := `
+			INSERT INTO todos (title)
+			VALUES ($1)
+			RETURNING id`
+
+	args := []any{todo.Title}
+	return m.DB.QueryRow(query, args...).Scan(&todo.ID)
+}
+
+func (m TodoModel) Get(id int64) (*Todo, error) {
+	return nil, nil
+}
+
+func (m TodoModel) Update(todo *Todo) error {
+	return nil
+}
+
+func (m TodoModel) Delete(todo *Todo) error {
+	return nil
+}
