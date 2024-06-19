@@ -14,7 +14,7 @@ type Models struct {
 		Insert(todo *Todo) error
 		Get(id int64) (*Todo, error)
 		Update(todo *Todo) error
-		Delete(todo *Todo) error
+		Delete(id int64) error
 	}
 }
 

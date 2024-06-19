@@ -2,6 +2,7 @@ package data
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 
 	"rehmanm.go-todo/internal/validator"
@@ -28,23 +29,56 @@ type TodoModel struct {
 
 func (m TodoModel) Insert(todo *Todo) error {
 
-	query := `
-			INSERT INTO todos (title)
-			VALUES ($1)
-			RETURNING id`
+	query := `call todo_save(0, $1, false, 0)`
 
 	args := []any{todo.Title}
 	return m.DB.QueryRow(query, args...).Scan(&todo.ID)
 }
 
 func (m TodoModel) Get(id int64) (*Todo, error) {
-	return nil, nil
+	if id < 1 {
+		return nil, ErrRecordNotFound
+	}
+
+	query := `SELECT * from todo_get($1)`
+
+	var todo Todo
+
+	err := m.DB.QueryRow(query, id).Scan(&todo.ID, &todo.Title, &todo.Completed, &todo.CreatedAt, &todo.UpdatedAt)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrRecordNotFound
+		}
+		return nil, err
+	}
+
+	return &todo, nil
 }
 
 func (m TodoModel) Update(todo *Todo) error {
 	return nil
 }
 
-func (m TodoModel) Delete(todo *Todo) error {
+func (m TodoModel) Delete(id int64) error {
+	if id < 1 {
+		return ErrRecordNotFound
+	}
+	query := `call todo_delete( $1)`
+
+	result, err := m.DB.Exec(query, id)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
+	}
+
 	return nil
 }

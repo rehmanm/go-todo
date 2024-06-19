@@ -12,3 +12,23 @@ Health Check
 ```
 curl http://localhost:4000/v1/healthcheck
 ```
+
+## Migrations
+
+## Create
+
+```
+migrate create -seq -ext=.sql -dir=./migrations {migration name}
+```
+
+## Execute
+
+```
+migrate -path=./migrations -database=$TODO_DB_SSN up
+```
+
+## Rollback
+
+```
+migrate -path=./migrations -database=$TODO_DB_SSN down
+```

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -47,7 +48,28 @@ func (app *application) createTodoHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) deleteTodoHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Delete todo")
+	id, err := app.readIDParam(r)
+
+	if err != nil || id < 1 {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	err = app.models.Todos.Delete(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"message": "movie deleted successfuly"}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }
 
 func (app *application) getAllTodosHandler(w http.ResponseWriter, r *http.Request) {
@@ -68,7 +90,13 @@ func (app *application) getTodoHandler(w http.ResponseWriter, r *http.Request) {
 
 	todo, err := app.models.Todos.Get(id)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"todo": todo}, nil)
