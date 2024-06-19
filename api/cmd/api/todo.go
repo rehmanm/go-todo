@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"rehmanm.go-todo/internal/data"
 	"rehmanm.go-todo/internal/validator"
@@ -67,12 +66,9 @@ func (app *application) getTodoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	todo := data.Todo{
-		ID:        id,
-		CreatedAt: time.Now(),
-		Title:     "First Todo",
-		Completed: false,
-		UpdatedAt: time.Now(),
+	todo, err := app.models.Todos.Get(id)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"todo": todo}, nil)
