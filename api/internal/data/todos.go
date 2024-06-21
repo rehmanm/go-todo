@@ -3,6 +3,7 @@ package data
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"rehmanm.go-todo/internal/validator"
@@ -29,7 +30,7 @@ type TodoModel struct {
 
 func (m TodoModel) Insert(todo *Todo) error {
 
-	query := `call todo_save(0, $1, false, 0)`
+	query := `call todo_save(0, $1, false)`
 
 	args := []any{todo.Title}
 	return m.DB.QueryRow(query, args...).Scan(&todo.ID)
@@ -66,15 +67,13 @@ func (m TodoModel) Delete(id int64) error {
 	}
 	query := `call todo_delete( $1)`
 
-	result, err := m.DB.Exec(query, id)
+	var rowsAffected int64
+	err := m.DB.QueryRow(query, id).Scan(&rowsAffected)
 	if err != nil {
 		return err
 	}
-	rowsAffected, err := result.RowsAffected()
 
-	if err != nil {
-		return err
-	}
+	fmt.Printf("rowsAffected %d", rowsAffected)
 
 	if rowsAffected == 0 {
 		return ErrRecordNotFound

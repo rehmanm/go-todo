@@ -1,7 +1,8 @@
-CREATE OR REPLACE PROCEDURE public.todo_save(IN id integer, IN title text, IN completed boolean, id OUT integer)
+CREATE OR REPLACE PROCEDURE todo_save(INOUT id integer, IN title text, IN completed boolean)
  LANGUAGE sql
 BEGIN ATOMIC
  INSERT INTO todos (title, completed)
    VALUES (todo_save.title, todo_save.completed)
-   RETURNING id;
+   RETURNING todos.id;
 END
+;

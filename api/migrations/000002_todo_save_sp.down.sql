@@ -1,1 +1,1 @@
-DROP PROCEDURE public.todo_save(int4, text, bool, int4);
+DROP PROCEDURE todo_save(inout int4, in text, in bool);

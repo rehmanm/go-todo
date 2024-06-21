@@ -66,7 +66,7 @@ func (app *application) deleteTodoHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"message": "movie deleted successfuly"}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"todos": "todo deleted successfuly"}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

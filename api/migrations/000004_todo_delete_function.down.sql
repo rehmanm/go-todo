@@ -1,0 +1,1 @@
+DROP PROCEDURE public.todo_delete(inout int4);
