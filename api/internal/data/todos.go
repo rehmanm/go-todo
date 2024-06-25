@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"time"
@@ -32,7 +33,9 @@ func (m TodoModel) Insert(todo *Todo) error {
 	query := `call todo_save(0, $1, false)`
 
 	args := []any{todo.Title}
-	return m.DB.QueryRow(query, args...).Scan(&todo.ID)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	return m.DB.QueryRowContext(ctx, query, args...).Scan(&todo.ID)
 }
 
 func (m TodoModel) Get(id int64) (*Todo, error) {
@@ -40,11 +43,15 @@ func (m TodoModel) Get(id int64) (*Todo, error) {
 		return nil, ErrRecordNotFound
 	}
 
-	query := `SELECT * from todo_get($1)`
+	query := `SELECT  * from todo_get($1)`
 
 	var todo Todo
 
-	err := m.DB.QueryRow(query, id).Scan(&todo.ID, &todo.Title, &todo.Completed, &todo.CreatedAt, &todo.UpdatedAt)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, id).Scan(&todo.ID, &todo.Title, &todo.Completed, &todo.CreatedAt, &todo.UpdatedAt)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -71,7 +78,20 @@ func (m TodoModel) Update(todo *Todo) error {
 		todo.ID,
 	}
 
-	return m.DB.QueryRow(query, args...).Scan(&todo.ID)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&todo.ID)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+
+	return nil
 
 }
 
@@ -82,7 +102,10 @@ func (m TodoModel) Delete(id int64) error {
 	query := `call todo_delete( $1)`
 
 	var rowsAffected int64
-	err := m.DB.QueryRow(query, id).Scan(&rowsAffected)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := m.DB.QueryRowContext(ctx, query, id).Scan(&rowsAffected)
 	if err != nil {
 		return err
 	}

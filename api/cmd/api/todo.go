@@ -119,7 +119,12 @@ func (app *application) updateTodoHandler(w http.ResponseWriter, r *http.Request
 	err = app.models.Todos.Update(todo)
 
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 	// Write the updated todo record in a JSON response.
