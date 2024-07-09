@@ -17,10 +17,16 @@ type Models struct {
 		Update(todo *Todo) error
 		Delete(id int64) error
 	}
+	Users interface {
+		Insert(user *User) error
+		GetByEmail(email string) (*User, error)
+		Update(todo *User) error
+	}
 }
 
 func NewModels(db *sql.DB) Models {
 	return Models{
 		Todos: TodoModel{DB: db},
+		Users: UserModel{DB: db},
 	}
 }

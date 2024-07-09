@@ -42,3 +42,8 @@ func Unique[T comparable](values []T) bool {
 	}
 	return len(values) == len(uniqueValues)
 }
+
+// Matches returns true if a string value matches a specific regexp pattern.
+func Matches(value string, rx *regexp.Regexp) bool {
+	return rx.MatchString(value)
+}
