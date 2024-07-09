@@ -22,5 +22,5 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodDelete, "/v1/todos/:id", app.deleteTodoHandler)
 	router.HandlerFunc(http.MethodPut, "/v1/todos/:id", app.updateTodoHandler)
 
-	return app.recoverPanic(router)
+	return app.recoverPanic(app.rateLimit(router))
 }
